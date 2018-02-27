@@ -1,0 +1,163 @@
+---
+title: "Dummy coding sample"
+author: "Yang Feng"
+date: "February 26, 2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r message = FALSE}
+# Importing the library
+library(dplyr)
+```
+
+
+## Dummy codinng for discrete variables
+* **Sample data set**
+* **Binary Variable**
+* **Variable with three levels**
+* **Variable with n levels**
+* **Project data set**
+
+### Sample data set
+```{r}
+# Generating a data set with 100 observations
+ID <- c(1 : 100) # Generating IDs
+x <- rnorm(100, 0, 20) + 60
+y1 <- c(rep("Yes", 20), rep("No", 70), rep(NA, 10))
+y2 <- c(rep("Blue", 30), rep("Red", 40), rep("Yellow", 25), rep(NA, 5))
+y3 <- c(rep("Extreme Low", 15)， rep("Low", 20), rep("Medium", 30), rep("High", 15), rep("Extreme High", 10), rep(NA, 10))
+sample <- data.frame(ID, x, y1, y2, y3)
+```
+
+**Glimpse of the sample data set**
+```{r echo = FALSE}
+glimpse(sample)
+```
+
+**First 6 observations**
+```{r echo = FALSE}
+head(sample)
+```
+
+**levels of y1, y2 and y3**
+```{r}
+summary(sample)
+```
+As we can see in the summary, there are missing values for y1, y2 and y3
+
+### Binary Variable
+```{r}
+# Create a dummy variable called y1.d1 for a binary variable
+sample$y1.d1 <- ifelse(sample$y1 == "Yes", 1, 0)
+```
+
+**Define a function to automate the task**
+```{r}
+dummy_coding2 <- function(data, response, level, dummy_label){
+  dummy <- ifelse(response == level, 1, 0)
+  data <- cbind(data, dummy)
+  colnames(data)[ncol(data)] <- dummy_label
+  data # This function output the dataset after the dummy coding
+}
+# Let's use this function to automate the task.
+data2 <- dummy_coding2(data = sample, response = sample$y1, level = "Yes", dummy_label = "y1.d1_a")
+head(data2)
+```
+
+**Check y1.d1 and y1.d1_a**
+```{r}
+# Check y1.d1 and y1.d1_a
+neq <- sum(sample$y1.d1!=sample$y1.d1_a)
+paste("There are", neq, "different values for y1.d1 and y1.d1_a.")
+```
+
+
+### Variable with three levels
+```{r}
+# Create two dummy variables called y2.d1 and y2.d2 for y2 (discrete variable with three levels)
+# The three levels of y2 are "Blue", "Red" and "Yellow"
+# Treating "Red" as the reference level
+sample$y2_d1 <- ifelse(sample$y2 == "Blue", 1, 0) # Dummy for Blue
+sample$y2_d2 <- ifelse(sample$y2 == "Yellow", 1, 0) # Dummy for Red
+# Check
+head(sample[,c(4,7,8)])
+```
+
+**Define a function to automate the task**
+```{r}
+dummy_coding3 <- function(data, response, level,  dummy_label){
+  col <- colnames(data)
+  dummy <- list()
+  dummy[[1]] <- ifelse(response == level[1], 1, 0)
+  dummy[[2]] <- ifelse(response == level[2], 1, 0)
+  data <- cbind(data, dummy[[1]], dummy[[2]])
+  colnames(data) <- c(col, dummy_label)
+  data
+}
+# Let's use this function to automate the task.
+data3 <- dummy_coding3(data = sample, response = sample$y2, level =c("Blue", "Yellow"), dummy_label = c("y2.d1_a", "y2.d2_a"))
+head(data3)
+```
+
+**Check y2.d1, y2.d2 and y2.d1_a, y2.d2_a**
+```{r echo }
+# Check y1.d1 and y1.d1_a
+neq2 <- sum(sample$y2.d1!=sample$y2.d1_a & sample$y2_d1 != sample$y2.d2_a)
+paste("There are", neq, "different value for y2.d1, y2.d2 and y2.d1_a, y2.d2_a.")
+```
+
+### Variable with n levels
+```{r}
+# Create four dummy variables called y3.d1, y3.d2, y3.d3 and y3.d4 for y3 (discrete variable with five levels)
+# The three levels of y2 are "Extreme Low", "Low", "Medium", "High"and "Extreme High"
+# Treating "Medium" as the reference level
+sample$y3_d1 <- ifelse(sample$y3 == "Extreme Low", 1, 0) # Dummy for Extreme Low
+sample$y3_d2 <- ifelse(sample$y3 == "Low", 1, 0) # Dummy for Low
+sample$y3_d3 <- ifelse(sample$y3 == "Extreme High", 1, 0) # Dummy for Extreme High
+sample$y3_d4 <- ifelse(sample$y3 == "High", 1, 0) # Dummy for High
+# Check
+head(sample[,c(5,9:12)])
+```
+
+**Define a function to automate the task**
+```{r}
+dummy_coding_n <- function(data, response, level,  dummy_label){
+  col_n <- colnames(data)
+  dummy <- list()
+  for (i in 1:length(level)){
+  dummy[[i]] <- ifelse(response == level[i], 1, 0)
+  data <- cbind(data, dummy[[i]])
+}
+  colnames(data) <- c(col_n, dummy_label)
+  data
+}
+# Let's use this function to automate the task.
+data3 <- dummy_coding_n(data = sample, response = sample$y3, level =c("Extreme Low", "Low", "Extreme High", "High"), dummy_label = c("y3.d1_a", "y3.d2_a", "y3.d3_a", "y3.d4_a"))
+head(data3)
+```
+Therefore, we can use this function dummy_coding_n to do dummy coding for discrete variables with reference level.
+
+### Project data set
+```{r echo = FALSE}
+# Importing the dataset
+project <- read.csv("D:/Spring 2018/Consulting/Ellita/firenze.csv", header = TRUE)
+```
+
+**First 6 observations**
+```{r echo = FALSE}
+head(project)
+```
+
+**Dummy coding for the project data set**
+```{r}
+# Let's do dummy coding for rs11605924.1., treating GG as the reference group, create dummies rs11605924.1.d1 for TG, rs11605924.1.d2 for TT
+project1 <- dummy_coding_n(data = project, response = project$rs11605924.1., level = c("T G", "T T"), dummy_label = c("rs11605924.1.d1", "rs11605924.1.d2"))
+head(project1)
+```
+
+**Note: When specifying the argument for levels and dummy_label, they are corresponding to each other with respect to order.**
+
